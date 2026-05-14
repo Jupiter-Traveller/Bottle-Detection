@@ -153,7 +153,7 @@ def main():
         output_dir=args.output_dir,
         weights=args.weights,
         limit=args.limit,
-        conf=conf,
+        conf=0,
         padding=args.padding,
     )
     print(f"Cropped images: {len(cropped_paths)}")
