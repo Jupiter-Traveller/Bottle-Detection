@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+.vscode/
+runs/
+weights/
+weights_level/
+dataset/
+dataset_position/
+dataset_level/
+cropped/
+test/
+*_contact_sheet*
+*.zip
+*.pt
+*.cache
