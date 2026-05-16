@@ -1,3 +1,18 @@
+"""
+SCRIPT_GROUP: _predict
+PURPOSE: Predict bottle-position boxes with a YOLO detector.
+
+Input:
+  A raw bottle image or image directory.
+
+Output:
+  One YOLO-normalized bbox line per image:
+  class_id x_center y_center width height
+
+For water-level classification inference, use predict_level.py or
+predict_level_torch.py instead.
+"""
+
 import argparse
 from pathlib import Path
 

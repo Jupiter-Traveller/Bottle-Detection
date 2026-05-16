@@ -1,3 +1,32 @@
+"""
+SCRIPT_GROUP: _train
+PURPOSE: Train YOLOv8-cls for 1/2/3 water-level classification.
+
+Input dataset:
+  dataset_level/train/1|2|3
+  dataset_level/val/1|2|3
+
+Output:
+  weights_level/<experiment_name>/
+
+Examples:
+python3 train_level_cls.py \
+  --name yolov8n_cls_img224_base \
+  --model yolov8n-cls.pt \
+  --imgsz 224 \
+  --epochs 80 \
+  --batch 32 \
+  --augment-preset base
+
+python3 train_level_cls.py \
+  --name yolov8n_cls_img224_color \
+  --model yolov8n-cls.pt \
+  --imgsz 224 \
+  --epochs 80 \
+  --batch 32 \
+  --augment-preset color
+"""
+
 import argparse
 from pathlib import Path
 

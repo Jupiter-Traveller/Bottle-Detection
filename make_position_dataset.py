@@ -1,3 +1,20 @@
+"""
+SCRIPT_GROUP: _data
+PURPOSE: Convert 0/1/2/3 YOLO labels into single-class bottle-position labels.
+
+Input:
+  dataset/images/train|val
+  dataset/labels/train|val
+
+Output:
+  dataset_position/images/train|val
+  dataset_position/labels/train|val
+  dataset_position/bottle_data.yaml
+
+This is used for YOLO bottle-position training. It keeps bbox coordinates and
+changes every class id to 0=bottle.
+"""
+
 import argparse
 import shutil
 from pathlib import Path

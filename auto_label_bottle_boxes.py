@@ -1,3 +1,17 @@
+"""
+SCRIPT_GROUP: _data
+PURPOSE: Auto-label bottle boxes with an existing YOLO detector.
+
+Input:
+  An image directory and trained bottle-detector weights.
+
+Output:
+  A YOLO-format image/label dataset with predicted bottle boxes.
+
+Use this only as an auxiliary labeling tool; predicted labels still need manual
+inspection before being treated as training data.
+"""
+
 import argparse
 import shutil
 from pathlib import Path

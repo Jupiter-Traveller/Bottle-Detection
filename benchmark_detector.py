@@ -1,3 +1,24 @@
+"""
+SCRIPT_GROUP: _evaluation
+PURPOSE: Benchmark bottle detector inference time on Mac or Ubuntu.
+
+This script measures only YOLO bottle-position inference latency. It does not
+train models and does not change datasets.
+
+Mac example:
+python3 benchmark_detector.py \
+  --weights weights/yolov8n_mixed_img512_lightaug/weights/best.pt \
+  --images dataset_position/images/val \
+  --imgsz 512
+
+Ubuntu GPU example:
+python3 benchmark_detector.py \
+  --weights weights/yolov8n_mixed_img512_lightaug/weights/best.pt \
+  --images dataset_position/images/val \
+  --imgsz 512 \
+  --device 0
+"""
+
 import argparse
 import csv
 import time
@@ -19,12 +40,31 @@ def parse_args():
     )
     parser.add_argument("--imgsz", type=int, default=640, help="Inference image size.")
     parser.add_argument("--conf", type=float, default=0.25, help="Confidence threshold.")
-    parser.add_argument("--device", default="0", help="Inference device, e.g. 0 or cpu.")
+    parser.add_argument(
+        "--device",
+        help="Inference device, e.g. 0, cpu, or mps. Defaults to cuda -> mps -> cpu.",
+    )
     parser.add_argument("--warmup", type=int, default=10, help="Warmup iterations.")
     parser.add_argument("--repeat", type=int, default=3, help="Repeat rounds over all images.")
     parser.add_argument("--limit", type=int, help="Limit number of images.")
     parser.add_argument("--output", help="Optional CSV output path.")
     return parser.parse_args()
+
+
+def select_device(device_arg):
+    if device_arg:
+        return device_arg
+
+    try:
+        import torch
+    except ModuleNotFoundError:
+        return "cpu"
+
+    if torch.cuda.is_available():
+        return 0
+    if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
 
 
 def list_images(path):
@@ -41,6 +81,7 @@ def list_images(path):
 
 def main():
     args = parse_args()
+    device = select_device(args.device)
     image_paths = list_images(args.images)
     if args.limit:
         image_paths = image_paths[: args.limit]
@@ -53,7 +94,7 @@ def main():
             source=str(image_path),
             imgsz=args.imgsz,
             conf=args.conf,
-            device=args.device,
+            device=device,
             verbose=False,
         )
 
@@ -66,7 +107,7 @@ def main():
                 source=str(image_path),
                 imgsz=args.imgsz,
                 conf=args.conf,
-                device=args.device,
+                device=device,
                 verbose=False,
             )
             elapsed_ms = (time.perf_counter() - started) * 1000
@@ -84,7 +125,7 @@ def main():
         "weights": args.weights,
         "images": str(args.images),
         "imgsz": args.imgsz,
-        "device": args.device,
+        "device": device,
         "image_count": len(image_paths),
         "repeat": args.repeat,
         "total_images": total_images,

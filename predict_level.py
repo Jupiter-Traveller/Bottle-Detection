@@ -1,3 +1,24 @@
+"""
+SCRIPT_GROUP: _predict
+PURPOSE: Predict 1/2/3 water level with a YOLOv8-cls classifier.
+
+Input options:
+  1. A cropped bottle image.
+  2. A raw bottle image with --crop, which first runs the bottle detector.
+
+Output:
+  Predicted level, confidence, and class probabilities.
+
+Examples:
+python3 predict_level.py bottle_crop.jpg \
+  --cls-weights weights_level/yolov8n_cls_img224_base/weights/best.pt
+
+python3 predict_level.py raw_image.jpg \
+  --crop \
+  --det-weights weights/yolov8n_mixed_img512_lightaug/weights/best.pt \
+  --cls-weights weights_level/yolov8n_cls_img224_base/weights/best.pt
+"""
+
 import argparse
 import json
 import tempfile
@@ -5,15 +26,6 @@ from pathlib import Path
 
 from PIL import Image
 from ultralytics import YOLO
-
-# python3 predict_level.py .jpg \
-#  --cls-weights best.pt
-
-#  python3 predict_level.py .jpg \
-#   --crop \
-#   --det-weights best.pt \
-#   --cls-weights best.pt \
-#   --padding 0.05
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent

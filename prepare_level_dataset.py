@@ -1,3 +1,20 @@
+"""
+SCRIPT_GROUP: _data
+PURPOSE: Build the cropped 1/2/3 water-level classification dataset.
+
+Input:
+  dataset/dataset*/images and dataset/dataset*/labels, or
+  dataset/images/train|val and dataset/labels/train|val
+
+Output:
+  dataset_level/train/1|2|3
+  dataset_level/val/1|2|3
+
+Class 0=Empty is skipped. Classes 1/2/3 are cropped by their YOLO bottle boxes
+and saved as image-classification folders for YOLO-cls, MobileNet, and
+EfficientNet training.
+"""
+
 import argparse
 import random
 import shutil

@@ -1,3 +1,17 @@
+"""
+SCRIPT_GROUP: _predict
+PURPOSE: Crop bottle regions from raw images using a trained YOLO detector.
+
+Input:
+  A raw bottle image or image directory.
+
+Output:
+  Cropped bottle images for liquid-presence and water-level classifiers.
+
+This is an intermediate inference utility. Use predict_level.py or
+predict_level_torch.py when you need final water-level predictions.
+"""
+
 import argparse
 from pathlib import Path
 

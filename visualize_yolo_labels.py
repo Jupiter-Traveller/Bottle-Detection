@@ -1,3 +1,16 @@
+"""
+SCRIPT_GROUP: _data
+PURPOSE: Render YOLO labels on images for annotation inspection.
+
+Input:
+  Image directory and matching YOLO label directory.
+
+Output:
+  Preview images with bounding boxes and class labels.
+
+This script is for checking label quality before training.
+"""
+
 import argparse
 from pathlib import Path
 

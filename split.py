@@ -1,3 +1,11 @@
+"""
+SCRIPT_GROUP: _data
+PURPOSE: Legacy alias for building the cropped 1/2/3 classification dataset.
+
+Prefer prepare_level_dataset.py for new runs. This file is kept only for
+backward compatibility with earlier local commands.
+"""
+
 import argparse
 import random
 import shutil

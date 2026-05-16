@@ -1,3 +1,18 @@
+"""
+SCRIPT_GROUP: _data
+PURPOSE: Split raw 0/1/2/3 YOLO bottle data into train/val subsets.
+
+Input:
+  bottle_dataset/images/train
+  bottle_dataset/labels/train
+
+Output:
+  dataset/images/train|val
+  dataset/labels/train|val
+
+Use this before make_position_dataset.py when rebuilding the detection dataset.
+"""
+
 import argparse
 import random
 import shutil

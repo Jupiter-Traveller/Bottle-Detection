@@ -1,3 +1,23 @@
+"""
+SCRIPT_GROUP: _train
+PURPOSE: Train the YOLOv8 bottle-position detector.
+
+Input dataset:
+  dataset_position/bottle_data.yaml
+
+Output:
+  weights/<experiment_name>/
+
+Recommended final detector example:
+python3 train.py \
+  --name yolov8n_mixed_img512_lightaug \
+  --model yolov8n.pt \
+  --imgsz 512 \
+  --epochs 100 \
+  --batch 32 \
+  --augment-preset light
+"""
+
 import argparse
 from pathlib import Path
 

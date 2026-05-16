@@ -1,3 +1,17 @@
+"""
+SCRIPT_GROUP: _evaluation
+PURPOSE: Summarize training results for detection and classification experiments.
+
+Input:
+  weights/*/results.csv
+  weights_level/*/results.csv
+
+Output:
+  Console tables with best detection mAP and best classification accuracy.
+
+Run this before filling paper comparison tables.
+"""
+
 import argparse
 import csv
 from pathlib import Path

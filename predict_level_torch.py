@@ -1,5 +1,13 @@
 """
-Predict water level with MobileNetV3-Small or EfficientNet-B0 checkpoints.
+SCRIPT_GROUP: _predict
+PURPOSE: Predict 1/2/3 water level with MobileNetV3 or EfficientNet checkpoints.
+
+Input options:
+  1. A cropped bottle image.
+  2. A raw bottle image with --crop, which first runs the bottle detector.
+
+Output:
+  Predicted level, confidence, and class probabilities.
 
 Classify an already-cropped bottle image:
 python3 predict_level_torch.py path/to/bottle_crop.jpg \

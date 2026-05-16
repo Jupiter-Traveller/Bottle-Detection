@@ -1,5 +1,13 @@
 """
-Train EfficientNet-B0 for water-level classification.
+SCRIPT_GROUP: _train
+PURPOSE: Train EfficientNet-B0 for 1/2/3 water-level classification.
+
+Input dataset:
+  dataset_level/train/1|2|3
+  dataset_level/val/1|2|3
+
+Output:
+  weights_level/<experiment_name>/
 
 Example:
 python3 train_level_efficientnet.py \
