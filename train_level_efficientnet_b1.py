@@ -1,30 +1,25 @@
 """
-Train MobileNetV3-Small for water-level classification.
+Train EfficientNet-B1 for water-level classification.
+
+EfficientNet-B1 is larger than B0. On a 4GB GTX 1650 Ti, start with batch 8 or 16.
 
 Example:
-python3 train_level_mobilenet.py \
-  --name mobilenetv3_small_level_img224_base \
+python3 train_level_efficientnet_b1.py \
+  --name efficientnet_b1_level_img240_color \
   --data dataset_level \
-  --imgsz 224 \
+  --imgsz 240 \
   --epochs 80 \
-  --batch 32
-
-Color-only augmentation:
-python3 train_level_mobilenet.py \
-  --name mobilenetv3_small_level_img224_color \
-  --data dataset_level \
-  --imgsz 224 \
-  --epochs 80 \
-  --batch 32 \
+  --batch 16 \
   --aug-preset color
 
-Try batch 64 if GPU memory is enough:
-python3 train_level_mobilenet.py \
-  --name mobilenetv3_small_level_img224_b64 \
+Higher-resolution trial:
+python3 train_level_efficientnet_b1.py \
+  --name efficientnet_b1_level_img300_color \
   --data dataset_level \
-  --imgsz 224 \
+  --imgsz 300 \
   --epochs 80 \
-  --batch 64
+  --batch 8 \
+  --aug-preset color
 """
 
 import argparse
@@ -47,12 +42,12 @@ DEFAULT_OUTPUT_ROOT = PROJECT_ROOT / "weights_level"
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Train MobileNetV3-Small on dataset_level.")
+    parser = argparse.ArgumentParser(description="Train EfficientNet-B1 on dataset_level.")
     parser.add_argument("--data", default=str(DEFAULT_DATA_ROOT), help="Classification dataset root.")
     parser.add_argument("--name", required=True, help="Experiment name under weights_level/.")
-    parser.add_argument("--imgsz", type=int, default=224, help="Input image size.")
+    parser.add_argument("--imgsz", type=int, default=240, help="Input image size.")
     parser.add_argument("--epochs", type=int, default=80, help="Maximum training epochs.")
-    parser.add_argument("--batch", type=int, default=32, help="Batch size.")
+    parser.add_argument("--batch", type=int, default=16, help="Batch size.")
     parser.add_argument("--lr", type=float, default=1e-4, help="Learning rate.")
     parser.add_argument("--weight-decay", type=float, default=1e-4, help="AdamW weight decay.")
     parser.add_argument("--patience", type=int, default=20, help="Early stopping patience.")
@@ -64,11 +59,6 @@ def parse_args():
         choices=("none", "color", "light"),
         default="none",
         help="Augmentation preset. color changes photometric features only; light also changes geometry.",
-    )
-    parser.add_argument(
-        "--light-aug",
-        action="store_true",
-        help="Deprecated alias for --aug-preset light.",
     )
     parser.add_argument("--exist-ok", action="store_true", help="Allow writing into existing output dir.")
     return parser.parse_args()
@@ -87,11 +77,7 @@ def build_transforms(imgsz, aug_preset):
             transforms.ColorJitter(brightness=0.25, contrast=0.25, saturation=0.25, hue=0.01)
         )
     if aug_preset == "light":
-        train_ops.extend(
-            [
-                transforms.RandomAffine(degrees=3, translate=(0.04, 0.04), scale=(0.9, 1.1)),
-            ]
-        )
+        train_ops.append(transforms.RandomAffine(degrees=3, translate=(0.04, 0.04), scale=(0.9, 1.1)))
     train_ops.extend(
         [
             transforms.ToTensor(),
@@ -133,10 +119,10 @@ def build_dataloaders(data_root, imgsz, batch, workers, aug_preset):
 
 def build_model(num_classes, pretrained):
     if pretrained:
-        weights = models.MobileNet_V3_Small_Weights.IMAGENET1K_V1
-        model = models.mobilenet_v3_small(weights=weights)
+        weights = models.EfficientNet_B1_Weights.IMAGENET1K_V2
+        model = models.efficientnet_b1(weights=weights)
     else:
-        model = models.mobilenet_v3_small(weights=None)
+        model = models.efficientnet_b1(weights=None)
 
     in_features = model.classifier[-1].in_features
     model.classifier[-1] = nn.Linear(in_features, num_classes)
@@ -157,7 +143,7 @@ def run_epoch(model, loader, criterion, device, optimizer=None, scaler=None):
         targets = targets.to(device, non_blocking=True)
 
         with torch.set_grad_enabled(is_train):
-            with torch.cuda.amp.autocast(enabled=device.type == "cuda"):
+            with torch.amp.autocast("cuda", enabled=device.type == "cuda"):
                 logits = model(images)
                 loss = criterion(logits, targets)
 
@@ -192,7 +178,7 @@ def save_checkpoint(path, model, optimizer, epoch, best_acc, class_to_idx, args)
             "best_acc": best_acc,
             "class_to_idx": class_to_idx,
             "args": vars(args),
-            "model_name": "mobilenet_v3_small",
+            "model_name": "efficientnet_b1",
         },
         path,
     )
@@ -209,9 +195,6 @@ def plot_confusion_matrix(targets, preds, class_names, output_path):
 
 def main():
     args = parse_args()
-    if args.light_aug:
-        args.aug_preset = "light"
-
     output_dir = DEFAULT_OUTPUT_ROOT / args.name
     if output_dir.exists() and not args.exist_ok:
         raise FileExistsError(f"Output dir exists: {output_dir}. Use --exist-ok to overwrite files.")
@@ -229,7 +212,7 @@ def main():
     model = build_model(num_classes=3, pretrained=not args.no_pretrained).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
-    scaler = torch.cuda.amp.GradScaler(enabled=device.type == "cuda")
+    scaler = torch.amp.GradScaler("cuda", enabled=device.type == "cuda")
 
     (output_dir / "args.json").write_text(json.dumps(vars(args), indent=2), encoding="utf-8")
     results_path = output_dir / "results.csv"

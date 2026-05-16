@@ -95,14 +95,26 @@ def validate_dataset():
     print(f"Position dataset ready: {train_count} train images, {val_count} val images.")
 
 
+def select_device(device_arg):
+    if device_arg:
+        return device_arg
+
+    import torch
+
+    if torch.cuda.is_available():
+        return 0
+    if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
+
+
 def main():
     args = parse_args()
     validate_dataset()
 
-    import torch
     from ultralytics import YOLO
 
-    ava_device = args.device or ("mps" if torch.backends.mps.is_available() else "cpu")
+    ava_device = select_device(args.device)
     print(f"Using device: {ava_device}")
     print(f"Experiment: {args.name}")
 

@@ -9,6 +9,15 @@ python3 train_level_efficientnet.py \
   --epochs 80 \
   --batch 32
 
+Color-only augmentation:
+python3 train_level_efficientnet.py \
+  --name efficientnet_b0_level_img224_color \
+  --data dataset_level \
+  --imgsz 224 \
+  --epochs 80 \
+  --batch 32 \
+  --aug-preset color
+
 Try batch 64 if GPU memory is enough:
 python3 train_level_efficientnet.py \
   --name efficientnet_b0_level_img224_b64 \
@@ -50,7 +59,17 @@ def parse_args():
     parser.add_argument("--workers", type=int, default=4, help="Dataloader workers.")
     parser.add_argument("--device", help="cuda, cpu, or cuda:0. Defaults to auto.")
     parser.add_argument("--no-pretrained", action="store_true", help="Train without ImageNet weights.")
-    parser.add_argument("--light-aug", action="store_true", help="Use light train-time augmentation.")
+    parser.add_argument(
+        "--aug-preset",
+        choices=("none", "color", "light"),
+        default="none",
+        help="Augmentation preset. color changes photometric features only; light also changes geometry.",
+    )
+    parser.add_argument(
+        "--light-aug",
+        action="store_true",
+        help="Deprecated alias for --aug-preset light.",
+    )
     parser.add_argument("--exist-ok", action="store_true", help="Allow writing into existing output dir.")
     return parser.parse_args()
 
@@ -61,13 +80,16 @@ def select_device(device_arg):
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def build_transforms(imgsz, light_aug):
+def build_transforms(imgsz, aug_preset):
     train_ops = [transforms.Resize((imgsz, imgsz))]
-    if light_aug:
+    if aug_preset in {"color", "light"}:
+        train_ops.append(
+            transforms.ColorJitter(brightness=0.25, contrast=0.25, saturation=0.25, hue=0.01)
+        )
+    if aug_preset == "light":
         train_ops.extend(
             [
                 transforms.RandomAffine(degrees=3, translate=(0.04, 0.04), scale=(0.9, 1.1)),
-                transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.01),
             ]
         )
     train_ops.extend(
@@ -84,9 +106,9 @@ def build_transforms(imgsz, light_aug):
     return transforms.Compose(train_ops), transforms.Compose(eval_ops)
 
 
-def build_dataloaders(data_root, imgsz, batch, workers, light_aug):
+def build_dataloaders(data_root, imgsz, batch, workers, aug_preset):
     data_root = Path(data_root)
-    train_tfms, eval_tfms = build_transforms(imgsz, light_aug)
+    train_tfms, eval_tfms = build_transforms(imgsz, aug_preset)
     train_dataset = datasets.ImageFolder(data_root / "train", transform=train_tfms)
     val_dataset = datasets.ImageFolder(data_root / "val", transform=eval_tfms)
     if train_dataset.classes != ["1", "2", "3"] or val_dataset.classes != ["1", "2", "3"]:
@@ -187,6 +209,9 @@ def plot_confusion_matrix(targets, preds, class_names, output_path):
 
 def main():
     args = parse_args()
+    if args.light_aug:
+        args.aug_preset = "light"
+
     output_dir = DEFAULT_OUTPUT_ROOT / args.name
     if output_dir.exists() and not args.exist_ok:
         raise FileExistsError(f"Output dir exists: {output_dir}. Use --exist-ok to overwrite files.")
@@ -198,7 +223,7 @@ def main():
         imgsz=args.imgsz,
         batch=args.batch,
         workers=args.workers,
-        light_aug=args.light_aug,
+        aug_preset=args.aug_preset,
     )
 
     model = build_model(num_classes=3, pretrained=not args.no_pretrained).to(device)
