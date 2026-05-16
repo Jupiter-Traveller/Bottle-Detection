@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 .DS_Store
 .obsidian/
+.vscode
 
 dataset/
 dataset_level/
