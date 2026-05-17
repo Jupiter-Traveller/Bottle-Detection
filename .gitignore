@@ -16,6 +16,7 @@ weights/
 weights_level/
 test/
 dataset4_contact_sheets/
+support_materials/
 *_contact_sheet*
 
 *.pt

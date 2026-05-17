@@ -1,0 +1,13 @@
+numpy
+pandas
+opencv-python
+scikit-image
+scikit-learn
+matplotlib
+joblib
+scipy
+Pillow
+
+# Optional deep-feature dependencies:
+# torch
+# torchvision

@@ -71,6 +71,15 @@ def summarize_classification(results_path):
     if row is None:
         return None
 
+    benchmark = results_path.parent / "benchmark.csv"
+    avg_ms = ""
+    fps = ""
+    if benchmark.exists():
+        bench_rows = read_rows(benchmark)
+        if bench_rows:
+            avg_ms = bench_rows[0].get("avg_ms", "")
+            fps = bench_rows[0].get("fps", "")
+
     if key == "metrics/accuracy_top1":
         return {
             "task": "cls",
@@ -80,6 +89,8 @@ def summarize_classification(results_path):
             "top1_acc": row.get("metrics/accuracy_top1", ""),
             "top5_acc": row.get("metrics/accuracy_top5", ""),
             "val_loss": row.get("val/loss", ""),
+            "avg_ms": avg_ms,
+            "fps": fps,
         }
 
     return {
@@ -90,6 +101,8 @@ def summarize_classification(results_path):
         "val_acc": row.get("val_acc", ""),
         "train_acc": row.get("train_acc", ""),
         "val_loss": row.get("val_loss", ""),
+        "avg_ms": avg_ms,
+        "fps": fps,
     }
 
 
@@ -135,7 +148,7 @@ def main():
     print_table(
         "Classification experiments",
         cls_rows,
-        ["experiment", "best_epoch", "top1_acc", "val_acc", "train_acc", "val_loss"],
+        ["experiment", "best_epoch", "top1_acc", "val_acc", "train_acc", "val_loss", "avg_ms", "fps"],
     )
 
 
